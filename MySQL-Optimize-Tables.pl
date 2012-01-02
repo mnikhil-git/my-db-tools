@@ -187,7 +187,7 @@ sub prepare_query {
 				$sql_query .= ' OR ' if $dbcnt != $#mysql_dbs;
 				$dbcnt++;
 				} 
-				$sql_query .= ') ';
+		$sql_query .= ') ';
 
 	} 
 
@@ -213,6 +213,7 @@ sub fetch_fragmented_tables {
 }
 
 sub display_fragmented_tables_summary {
+	&fetch_fragmented_tables;
 	if(defined (%db_fragmented_tables) ) {
 		print "Summary of fragmented tables on $opt{host} MySQL database\n";
 		print "=" x 75; print "\n";
@@ -227,6 +228,27 @@ sub display_fragmented_tables_summary {
 }
 
 sub fix_fragmented_tables {
+  print "INFO| Running fix mode\n" if $opt{'verbose'};
+  my $optimize_query = ();
+  my $batch_limit = 5;
+
+  foreach my $db_schema (keys %db_fragmented_tables) {
+    print "INFO| Optimizing tables under \"$db_schema\" database \n" if $opt{'verbose'};
+    #print "$db_schema:". join(',', @{$db_fragmented_tables{$db_schema}});
+    while (my @batch = splice(@{$db_fragmented_tables{$db_schema}}, 0 , $batch_limit)) {
+      $optimize_query = "OPTIMIZE TABLE  ";
+      my $tbl_iter = 0;
+      while ($tbl_iter <= $#batch) {
+	      $optimize_query .= "$db_schema."."$batch[$tbl_iter]"; 
+              $optimize_query .= ", " if $tbl_iter != $#batch;
+              $tbl_iter++;
+      }       
+    print "INFO| Executing SQL Query: $optimize_query\n" if $opt{'verbose'};
+    
+    $mysql_handle->query(qq{$optimize_query});
+    sleep(1);
+    }
+  }  
 
 }
 
@@ -238,6 +260,5 @@ sub fix_fragmented_tables {
 
 initialize_variables;
 connect_db;
-fetch_fragmented_tables;
 display_fragmented_tables_summary;
-#fix_fragmented_tables if defined($opt{'fix'}) && $opt{'fix'};
+fix_fragmented_tables if defined($opt{'fix'}) && $opt{'fix'};
