@@ -250,8 +250,6 @@ sub fix_fragmented_tables {
     }
   }  
 
-  # close the mysql connection!	
-  $mysql_handle->close;
 }
 
 # -----------------------------------------------------------------------------
@@ -264,3 +262,8 @@ initialize_variables;
 connect_db;
 display_fragmented_tables_summary;
 fix_fragmented_tables if defined($opt{'fix'}) && $opt{'fix'};
+
+if(defined($mysql_handle)) {
+  # close the mysql connection!	
+  $mysql_handle->close;
+}
