@@ -250,6 +250,8 @@ sub fix_fragmented_tables {
     }
   }  
 
+  # close the mysql connection!	
+  $mysql_handle->close;
 }
 
 # -----------------------------------------------------------------------------
