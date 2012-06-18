@@ -22,7 +22,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
 # Nikhil Mulley
@@ -43,14 +43,14 @@ my $script_version = '1.0';
 
 # set defaults
 my %opt = (
-"host"      =&gt; 0,
-"socket"    =&gt; 0,
-"port"      =&gt; 0,
-"user"      =&gt; 0,
-"pass"      =&gt; 0,
-"list"      =&gt; 0,
-"fix"       =&gt; 0,
-"verbose"   =&gt; 0,
+"host"      => 0,
+"socket"    => 0,
+"port"      => 0,
+"user"      => 0,
+"pass"      => 0,
+"list"      => 0,
+"fix"       => 0,
+"verbose"   => 0,
 );
 
 use vars qw ($fix_tables @mysql_dbs $mysql_handle $mysql_default_user
@@ -81,11 +81,11 @@ sub usage {
     print " ".
     "MySQL-Optimize-Tables - perl script version $script_version\n".
     "Usage:\n".
-    "  --host &lt;hostname&gt; Connect to MySQL server and perform checks\n".
-    "  --socket &lt;socket&gt; Use a socket connection \n".
-    "  --port &lt;port&gt; Use a different port for connection. (Default port: 3306) \n".
-    "  --user &lt;username&gt; Username to use for authentication \n".
-    "  --pass &lt;password&gt; Password to use for authentication \n".
+    "  --host <hostname> Connect to MySQL server and perform checks\n".
+    "  --socket <socket> Use a socket connection \n".
+    "  --port <port> Use a different port for connection. (Default port: 3306) \n".
+    "  --user <username> Username to use for authentication \n".
+    "  --pass <password> Password to use for authentication \n".
     "  --list List the fragmented tables. Default option for all databases\n".
     "  --fix  Fix the fragmented tables. Run Optimize table for the listed tables\n".
     "  --dblist  Comma seperated list of databases to check the list of their fragmented tables\n".
@@ -156,9 +156,9 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
     sub connect_db {
         
         my %mysql_conn_details = (
-        'user'     =&gt; $mysql_default_user,
-        'database' =&gt; $mysql_default_db_login,
-        'password' =&gt; $opt{'pass'},
+        'user'     => $mysql_default_user,
+        'database' => $mysql_default_db_login,
+        'password' => $opt{'pass'},
         );
         
         # use socket method if defined
@@ -169,7 +169,7 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
             $mysql_conn_details{'unixsocket'} = $opt{'socket'};
         }
         
-        $mysql_handle = Net::MySQL-&gt;new(%mysql_conn_details);
+        $mysql_handle = Net::MySQL->new(%mysql_conn_details);
         print "INFO| Connected to MySQL server.  \n" if $opt{'verbose'};
         
     }
@@ -178,12 +178,12 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
     sub prepare_query {
         my $sql_query;
         # query to fetch the list of fragmented tables across the databases from information_schema
-        $sql_query = 'SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES where  DATA_FREE &gt; 0 ';
+        $sql_query = 'SELECT TABLE_SCHEMA, TABLE_NAME FROM information_schema.TABLES where  DATA_FREE > 0 ';
     if (! $opt{'dball'} && @mysql_dbs) {
             my $dbcnt = 0;
             $sql_query .= 'AND ( ';
-            while ($dbcnt &lt;= $#mysql_dbs) {
-                $sql_query .= "TABLE_SCHEMA &lt;=&gt; \"$mysql_dbs[$dbcnt]\" ";
+            while ($dbcnt <= $#mysql_dbs) {
+                $sql_query .= "TABLE_SCHEMA <=> \"$mysql_dbs[$dbcnt]\" ";
                 $sql_query .= ' OR ' if $dbcnt != $#mysql_dbs;
                 $dbcnt++;
             }
@@ -201,12 +201,12 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
         my $sql_query = &prepare_query;
         #print "INFO| SQL Query :$sql_query\n" if $opt{'verbose'};
         
-        $mysql_handle-&gt;query(qq{$sql_query});
-        if ($mysql_handle-&gt;has_selected_record) {
-            my $db_record_iter = $mysql_handle-&gt;create_record_iterator;
+        $mysql_handle->query(qq{$sql_query});
+        if ($mysql_handle->has_selected_record) {
+            my $db_record_iter = $mysql_handle->create_record_iterator;
             my $db_row;
-            while( $db_row = $db_record_iter-&gt;each ) {
-                push(@{$db_fragmented_tables{"$db_row-&gt;[0]"}}, $db_row-&gt;[1]);
+            while( $db_row = $db_record_iter->each ) {
+                push(@{$db_fragmented_tables{"$db_row->[0]"}}, $db_row->[1]);
             }
             
         }
@@ -238,14 +238,14 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
     while (my @batch = splice(@{$db_fragmented_tables{$db_schema}}, 0 , $batch_limit)) {
                 $optimize_query = "OPTIMIZE TABLE  ";
                 my $tbl_iter = 0;
-                while ($tbl_iter &lt;= $#batch) {
+                while ($tbl_iter <= $#batch) {
                     $optimize_query .= "$db_schema."."$batch[$tbl_iter]";
                     $optimize_query .= ", " if $tbl_iter != $#batch;
                     $tbl_iter++;
                 }
                 print "INFO| Executing SQL Query: $optimize_query\n" if $opt{'verbose'};
                 
-                $mysql_handle-&gt;query(qq{$optimize_query});
+                $mysql_handle->query(qq{$optimize_query});
                 sleep(1);
             }
         }
@@ -255,8 +255,8 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
     # -----------------------------------------------------------------------------
     # BEGIN 'MAIN'
     # -----------------------------------------------------------------------------
-    #print "\n &gt;&gt; MySQL-Optimize-Tables  - Author: Nikhil Mulley ";
-    #print "\n &gt;&gt;   Run with --help for additional options\n";
+    #print "\n >> MySQL-Optimize-Tables  - Author: Nikhil Mulley ";
+    #print "\n >>   Run with --help for additional options\n";
     
     initialize_variables;
     connect_db;
@@ -265,5 +265,6 @@ if (defined $opt{'dblist'} && $opt{'dblist'} ne 0) {
     
     if(defined($mysql_handle)) {
         # close the mysql connection!
-        $mysql_handle-&gt;close;
+        $mysql_handle->close;
     }
+
